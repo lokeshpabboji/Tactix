@@ -2,6 +2,33 @@ import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "@/lib/prisma";
 
+
+if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || !process.env.NEXTAUTH_SECRET) {
+    throw new Error("Missing required environment variables for authentication.");
+}
+
+
+// TODO user validation
+
+async function findOrCreateUser(name : string, email : string, image : string) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+        if(user) return user;
+        return await prisma.user.create({
+            data : {
+                name,
+                email,
+                profile : image
+            }
+        })
+    } catch (error) {
+        console.error("error : ", error)
+        throw new Error("Failed to authenticate user.");
+    }
+}
+
 export const authOptions : AuthOptions = {
     providers : [
         GoogleProvider({
@@ -30,34 +57,19 @@ export const authOptions : AuthOptions = {
             //     ${user.image}
             //     ${user.name}
             //     `)
-            if (user){
-                // Check if the user exists in your database
-                const oldUser = await prisma.user.findUnique({
-                    where: { email: user.email || ""},
-                });
-
-                if (!oldUser) {
-                    // Create a new user if they don't exist
-                    const newUser = await prisma.user.create({
-                        data: {
-                            name: user?.name || "",
-                            email: user?.email || "",
-                            profile: user?.image || "",
-                            // Add other user details as needed
-                        },
-                    });
-                    token.id = newUser.id;
-                    token.name = newUser.name;
-                    token.email = newUser.email;
-                    token.profile = newUser.profile
-                }else {
-                    token.id = oldUser.id;
-                    token.name = oldUser.name;
-                    token.email = oldUser.email;
-                    token.profile = oldUser.profile;
+            try {
+                if (user){
+                    const dbUser = await findOrCreateUser(user.name || "",user.email || "",user.image || "")
+                    token.id = dbUser.id;
+                    token.name = dbUser.name;
+                    token.email = dbUser.email;
+                    token.profile = dbUser.profile;
                 }
+                return token;
+            } catch (error) {
+                console.error("JWT callback error", error);
+                return token;
             }
-            return token;
         },
         async session({ session, token }) {
             // console.log("hewlehofus")
@@ -81,7 +93,8 @@ export const authOptions : AuthOptions = {
         signIn : '/signin'
     },
     session : {
-        strategy : "jwt"
+        strategy : "jwt",
+        maxAge : 30 * 60,
     },
     secret : process.env.NEXTAUTH_SECRET
 }

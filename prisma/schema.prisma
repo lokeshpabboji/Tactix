@@ -14,8 +14,40 @@ datasource db {
 }
 
 model User {
-  id          Int    @id @default(autoincrement())
-  name        String
-  email       String @unique
-  profile     String
+  id               Int             @id @default(autoincrement())
+  name             String
+  email            String          @unique
+  profile          String
+  games_played     Int             @default(0)
+  games_won        Int             @default(0)
+  games_drawn      Int             @default(0)
+  games_lost       Int             @default(0)
+  rating           Int             @default(800)
+  sentRequests     FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
+  friends          Friend[]        @relation("Friend")
+  friendsOf        Friend[]        @relation("FriendsOf")
+}
+
+model FriendRequest {
+  id         Int      @id @default(autoincrement())
+  fromUserId Int
+  toUserId   Int
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  fromUser   User     @relation("SentRequests", fields: [fromUserId], references: [id])
+  toUser     User     @relation("ReceivedRequests", fields: [toUserId], references: [id])
+  // @@unique([toUserId, fromUserId]) // Prevent reverse duplicates
+
+  // Ensure only one active request exists between two users
+  @@unique([fromUserId, toUserId])
+}
+
+model Friend {
+  userId   Int
+  friendId Int
+  user     User @relation(name: "Friend", fields: [userId], references: [id])
+  friend   User @relation(name: "FriendsOf", fields: [friendId], references: [id])
+  
+  @@id([userId, friendId])
 }
