@@ -47,7 +47,7 @@ export default function Page() {
             return;
         }
 
-        socketRef.current = io("http://192.168.1.2:4000")
+        socketRef.current = io("https://chess-socket-server.vercel.app")
 
         socketRef.current.on('connect', () => {
             console.log(`Socket connected on client ${socketRef.current?.id}`);
