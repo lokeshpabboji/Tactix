@@ -47,7 +47,7 @@ export default function Page() {
             return;
         }
 
-        socketRef.current = io("https://star-purrfect-neon.glitch.me")
+        socketRef.current = io("https://chess-socket-server.onrender.com")
 
         socketRef.current.on('connect', () => {
             console.log(`Socket connected on client ${socketRef.current?.id}`);
