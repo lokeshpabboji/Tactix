@@ -1,4 +1,4 @@
-import { Handshake, Home, Grid2x2Plus , Search, Settings, LogOut } from "lucide-react"
+import { Home, Grid2x2Plus, Settings, LogOut } from "lucide-react"
 
 import {
   Sidebar,
@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 // Menu items.
 const items = [
@@ -21,18 +22,8 @@ const items = [
   },
   {
     title: "Play",
-    url: "/create-room",
+    url: "/play",
     icon: Grid2x2Plus,
-  },
-  {
-    title: "Friends",
-    url: "/friends",
-    icon: Handshake,
-  },
-  {
-    title: "Search",
-    url: "/search",
-    icon: Search,
   },
   {
     title: "Settings",
@@ -52,10 +43,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
+                    <Link href={item.url} >
+                      <item.icon className="text-blue-400" />
                       <span className="text-sm text-cyan-950 font-medium">{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
